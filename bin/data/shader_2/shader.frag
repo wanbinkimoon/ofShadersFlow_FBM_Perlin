@@ -48,20 +48,26 @@ float fbm ( in vec2 _st) {
     _st = rot * _st * 2.0 + shift;
     a *= 0.5;
   }
-    return v;
-//  return fbm(v + fbm(v + fbm(v)));
+  return v;
+  //  return fbm(v + fbm(v + fbm(v)));
 }
 
+float soundOnMove = u_sound;
+
 void main() {
+  soundOnMove += u_sound * 1.2;
+  soundOnMove++;
+  
   vec2 st = gl_FragCoord.xy/u_resolution.xy*3.;
-//  st += st * abs(sin(u_time * 0.1) * 3.0);
-//   st += st * abs(sin(u_sound*0.1)*3.0);
+  //  st += st * abs(sin(u_time * 0.1) * 3.0);
+  //   st += st * abs(sin(u_sound*0.1)*3.0);
+  st += st * abs((u_time * 0.1) - soundOnMove);
   
   st += st * sin(u_time * 0.1);
-
+  
   vec2 q = vec2(0.);
-//  q.x = fbm( st + 0.00*u_time);
-//  q.y = fbm( st + vec2(1.0));
+  //  q.x = fbm( st + 0.00*u_time);
+  //  q.y = fbm( st + vec2(1.0));
   q.x = fbm(st + fbm(st + fbm(st + u_time)));
   q.y = fbm(st + fbm(st + fbm(st + vec2(1.0))));
   
@@ -88,24 +94,24 @@ void main() {
   z.y = fbm(v + fbm(v + vec2(0.1 + (u_sound * 2.1), 2.3)));
   
   float f = fbm(v + fbm(u + fbm(st + u)));
-
   
-  vec3 color = vec3(0., random(vec2(0.2, .7)), random(vec2(0.3, 1.2)));
+  
+  vec3 color = vec3(0., random(vec2(0.2, .7)), random(vec2(0.3, .6)));
   
   color = mix(color,
-              vec3(sin(u_sound * .6), 0.1 , 0.9),
+              vec3(sin(u_sound * .6), 0.8 , 0.2),
               clamp(length(cos(f * u_time)), 0.0, 1.0));
   
   color = mix(color,
-              vec3(cos(u_sound * .34), 0.2, 0.9),
+              vec3(cos(u_sound * .34), 0.2, 0.6),
               clamp(length(cos(q * u_sound)), .3, 1));
   
   color = mix(color,
               vec3(1, 0.1, 0.8),
               clamp(length(cos(s.x * u_sound)), .3, 1));
   
-    
-  vec3 color2 = vec3(0., random(vec2(0.1, .4)), random(vec2(0, 1)));
+  
+  vec3 color2 = vec3(0., random(vec2(0.1, .4)), random(vec2(0, .5)));
   
   
   color2 = mix(color2,
@@ -126,7 +132,7 @@ void main() {
               clamp(length(z.x), 0.0, u_sound * .85));
   
   //  outputColor = vec4((f*f+.6*f*f+.5*f)*color,
-    outputColor = vec4((f * f * .3 + f * f * r.x + f * f * f + z.y)*color,1.);
-//  outputColor = vec4((f * f * .3 + f * f + .3)*color,1.);
+  outputColor = vec4((f * f * .3 + f * f * r.x + f * f * f + z.y)*color,1.);
+  //  outputColor = vec4((f * f * .3 + f * f + .3)*color,1.);
 }
 

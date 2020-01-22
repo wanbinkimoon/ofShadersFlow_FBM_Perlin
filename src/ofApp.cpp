@@ -16,7 +16,6 @@ void ofApp::setup(){
   //setup ofxAudioAnalyzer with the SAME PARAMETERS
   audioAnalyzer.setup(sampleRate, bufferSize, inChannels);
   shader.load("shader_2/shader");
-
   // loading shader from data folder
 
 //  bar.shader.setUniform4f("color", 200.0, 155.0, 100.0, 255.0);
