@@ -952,5 +952,4 @@ dependencies: \
   ../../../addons/ofxAudioAnalyzer/libs/essentia/include/essentia/threading.h \
   ../../../addons/ofxAudioAnalyzer/src/ofxAudioAnalyzerAlgorithms.h \
   ../../../addons/ofxAudioAnalyzer/src/ofxAAMultiPitchKlapuriAlgorithm.h \
-  ../../../addons/ofxAudioAnalyzer/src/ofxAAOnsetsAlgorithm.h \
-  src/grigliata.hpp src/cell.h src/barretta.hpp
+  ../../../addons/ofxAudioAnalyzer/src/ofxAAOnsetsAlgorithm.h

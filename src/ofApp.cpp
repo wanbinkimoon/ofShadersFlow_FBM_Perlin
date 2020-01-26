@@ -11,25 +11,24 @@ void ofApp::setup(){
   int bufferSize = 512;
   int outChannels = 0;
   int inChannels = 2;
-
   // setup the sound stream
   soundStream.setup(this, outChannels, inChannels, sampleRate, bufferSize, 3);
 
   //setup ofxAudioAnalyzer with the SAME PARAMETERS
   audioAnalyzer.setup(sampleRate, bufferSize, inChannels);
-  shader.load("shader_2/shader");
+  
+  
+  shader.load("shader_3/shader");
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-  grid.cellSetup(consts.rows, consts.cols);
-  bar.cell = grid.cell;
+//  smooth = ofClamp(ofGetMouseX() / (float)ofGetWidth(), 0.0, 1.0);
+  smooth = .75;
   
-  smooth = ofClamp(ofGetMouseX() / (float)ofGetWidth(), 0.0, 1.0);
   //get the analysis values
   rms_l = audioAnalyzer.getValue(RMS, 0, smooth);
   rms_r = audioAnalyzer.getValue(RMS, 1, smooth);
-  bar.update(rms_r);
 }
 
 //--------------------------------------------------------------

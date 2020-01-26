@@ -2,14 +2,6 @@
 
 #include "ofMain.h"
 #include "ofxAudioAnalyzer.h"
-#include "grigliata.hpp"
-#include "barretta.hpp"
-
-class Constants {
-  public:
-    int rows = 12;
-    int cols = 12;
-};
 
 //---------------
 
@@ -36,8 +28,5 @@ class ofApp : public ofBaseApp{
     float rms_l, rms_r;
     float smooth;
   
-    Constants consts;
-    Grid grid;
-    BarrettaClass bar;
     ofShader shader;
 };

@@ -52,10 +52,10 @@ float fbm ( in vec2 _st) {
   //  return fbm(v + fbm(v + fbm(v)));
 }
 
-float soundOnMove = u_sound;
+float soundOnMove = 0;
 
 void main() {
-  soundOnMove += u_sound * 1.2;
+//  soundOnMove += u_sound;
   soundOnMove++;
   
   vec2 st = gl_FragCoord.xy/u_resolution.xy*3.;
@@ -86,12 +86,14 @@ void main() {
   vec2 v = vec2(0.);
   //  v.x = fbm(u + vec2(1.7 * u_time, 1.2));
   //  v.y = fbm(u + vec2(5.3 * u_time, 2.3));
-  v.x = fbm(u + fbm(u + vec2(sin(u_time), 1.2)));
-  v.y = fbm(u + fbm(u + vec2(sin(u_time), cos(u_time))));
+  v.x = fbm(u + fbm(u + vec2(u_time, 1.2)));
+  v.y = fbm(u + fbm(u + vec2(u_time, u_time)));
   
   vec2 z = vec2(0.);
-  z.x = fbm(v + fbm(v + vec2(3.0 + (u_sound * 2.1) ,1.2)));
-  z.y = fbm(v + fbm(v + vec2(0.1 + (u_sound * 2.1), 2.3)));
+//  z.x = fbm(v + fbm(v + vec2(3.0 + (u_sound * 2.1) ,1.2)));
+//  z.y = fbm(v + fbm(v + vec2(0.1 + (u_sound * 2.1), 2.3)));
+  z.x = fbm(v + fbm(v + vec2(3.0 + (u_time * 2.1) ,1.2)));
+  z.y = fbm(v + fbm(v + vec2(0.1 + (u_time * 2.1), 2.3)));
   
   float f = fbm(v + fbm(u + fbm(st + u)));
   
@@ -99,11 +101,11 @@ void main() {
   vec3 color = vec3(0., random(vec2(0.2, .7)), random(vec2(0.3, .6)));
   
   color = mix(color,
-              vec3(sin(u_sound * .6), 0.8 , 0.2),
+              vec3(sin(u_sound) + .6, 0.8 , 0.2),
               clamp(length(cos(f * u_time)), 0.0, 1.0));
   
   color = mix(color,
-              vec3(cos(u_sound * .34), 0.2, 0.6),
+              vec3(cos(u_sound) + .12, 0.2, 0.6),
               clamp(length(cos(q * u_sound)), .3, 1));
   
   color = mix(color,
@@ -120,7 +122,7 @@ void main() {
   
   
   color2 = mix(color2,
-               vec3(0.1,  sin(u_time * .8), .2),
+               vec3(0.1,  sin(u_time * .8) + .2, sin(u_time * .8) + .2),
                clamp(length(sin(z.y *  f * u_time)), .2 , .8));
   
   color2 = mix(color2,
