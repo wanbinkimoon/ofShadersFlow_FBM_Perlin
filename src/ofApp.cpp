@@ -17,8 +17,7 @@ void ofApp::setup(){
   //setup ofxAudioAnalyzer with the SAME PARAMETERS
   audioAnalyzer.setup(sampleRate, bufferSize, inChannels);
   
-  
-  shader.load("shader_3/shader");
+  shader.load("shader_1/shader");
 }
 
 //--------------------------------------------------------------
