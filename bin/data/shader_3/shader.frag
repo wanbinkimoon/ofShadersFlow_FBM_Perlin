@@ -1,119 +1,138 @@
-// Created by inigo quilez - iq/2013
-// License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
-
-// See here for a tutorial on how to make this:
-//
-// http://www.iquilezles.org/www/articles/warp/warp.htm
-
-//====================================================================
 #version 150
 
-const mat2 m = mat2( 0.80,  0.60, -0.60,  0.80 );
-
 out vec4 outputColor;
-in vec2 fragCoord
+
 uniform vec2 u_resolution;
+uniform vec2 u_mouse;
 uniform float u_time;
+uniform float u_sound;
 
-
-uniform vec3      iResolution;           // viewport resolution (in pixels)
-uniform float     iTime;                 // shader playback time (in seconds)
-uniform float     iTimeDelta;            // render time (in seconds)
-uniform int       iFrame;                // shader playback frame
-uniform float     iChannelTime[4];       // channel playback time (in seconds)
-uniform vec3      iChannelResolution[4]; // channel resolution (in pixels)
-uniform vec4      iMouse;                // mouse pixel coords. xy: current (if MLB down), zw: click
-uniform samplerXX iChannel0..3;          // input channel. XX = 2D/Cube
-uniform vec4      iDate;                 // (year, month, day, time in seconds)
-uniform float     iSampleRate;           // sound
-float noise( in vec2 p )
-{
-  return sin(p.x)*sin(p.y);
+float random (in vec2 _st) {
+  return fract(sin(dot(_st.xy,
+                       vec2(12.9898,78.233)))*
+               43758.5453123);
 }
 
-float fbm4( vec2 p )
-{
-  float f = 0.0;
-  f += 0.5000*noise( p ); p = m*p*2.02;
-  f += 0.2500*noise( p ); p = m*p*2.03;
-  f += 0.1250*noise( p ); p = m*p*2.01;
-  f += 0.0625*noise( p );
-  return f/0.9375;
+// Based on Morgan McGuire @morgan3d
+// https://www.shadertoy.com/view/4dS3Wd
+
+float noise (in vec2 _st) {
+  vec2 i = floor(_st);
+  vec2 f = fract(_st);
+  
+  // Four corners in 2D of a tile
+  float a = random(i);
+  float b = random(i + vec2(1.0, 0.0));
+  float c = random(i + vec2(0.0, 1.0));
+  float d = random(i + vec2(1.0, 1.0));
+  
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  
+  return mix(a, b, u.x) +
+  (c - a)* u.y * (1.0 - u.x) +
+  (d - b) * u.x * u.y;
 }
 
-float fbm6( vec2 p )
-{
-  float f = 0.0;
-  f += 0.500000*(0.5+0.5*noise( p )); p = m*p*2.02;
-  f += 0.250000*(0.5+0.5*noise( p )); p = m*p*2.03;
-  f += 0.125000*(0.5+0.5*noise( p )); p = m*p*2.01;
-  f += 0.062500*(0.5+0.5*noise( p )); p = m*p*2.04;
-  f += 0.031250*(0.5+0.5*noise( p )); p = m*p*2.01;
-  f += 0.015625*(0.5+0.5*noise( p ));
-  return f/0.96875;
+
+#define NUM_OCTAVES 5
+
+float fbm ( in vec2 _st) {
+  float v = 0.0;
+  float a = 0.5;
+  vec2 shift = vec2(100.0);
+  // Rotate to reduce axial bias
+  mat2 rot = mat2(cos(0.5), sin(0.5),
+                  -sin(0.5), cos(0.50));
+  for (int i = 0; i < NUM_OCTAVES; ++i) {
+    v += a * noise(_st);
+    _st = rot * _st * 2.0 + shift;
+    a *= 0.5;
+  }
+  return v;
+  //  return fbm(v + fbm(v + fbm(v)));
 }
 
-vec2 fbm4_2( vec2 p )
-{
-  return vec2(fbm4(p), fbm4(p+vec2(7.8)));
+float soundOnMove = u_sound;
+
+void main() {
+  soundOnMove += u_sound * 1.2;
+  soundOnMove++;
+  
+  vec2 st = gl_FragCoord.xy/u_resolution.xy*3.;
+  //  st += st * abs(sin(u_time * 0.1) * 3.0);
+  //   st += st * abs(sin(u_sound*0.1)*3.0);
+  st += st * abs((u_time * 0.1) - soundOnMove);
+  
+  st += st * sin(u_time * 0.1);
+  
+  vec2 q = vec2(0.);
+  //  q.x = fbm( st + 0.00*u_time);
+  //  q.y = fbm( st + vec2(1.0));
+  q.x = fbm(st + fbm(st + fbm(st + u_time)));
+  q.y = fbm(st + fbm(st + fbm(st + vec2(1.0))));
+  
+  vec2 r = vec2(0.);
+  r.x = fbm(st + 2.0 * q + vec2(1.7,9.2)+ 0.15 * u_time);
+  r.y = fbm(st + 1.0 * q + vec2(8.3,2.8)+ 0.16 * u_time);
+  
+  vec2 s = vec2(0.);
+  s.x = fbm(st + 3.2 * r + vec2(1.7, 4.2));
+  s.y = fbm(st + 2.1 * r + vec2(2.3, 2.8));
+  
+  vec2 u = vec2(0.);
+  u.x = fbm(st + 1.3 * s + vec2(4.7, 1.2));
+  u.y = fbm(st * s + vec2(2.3, 2.3));
+  
+  vec2 v = vec2(0.);
+  //  v.x = fbm(u + vec2(1.7 * u_time, 1.2));
+  //  v.y = fbm(u + vec2(5.3 * u_time, 2.3));
+  v.x = fbm(u + fbm(u + vec2(sin(u_time), 1.2)));
+  v.y = fbm(u + fbm(u + vec2(sin(u_time), cos(u_time))));
+  
+  vec2 z = vec2(0.);
+  z.x = fbm(v + fbm(v + vec2(3.0 + (u_sound * 2.1) ,1.2)));
+  z.y = fbm(v + fbm(v + vec2(0.1 + (u_sound * 2.1), 2.3)));
+  
+  float f = fbm(v + fbm(u + fbm(st + u)));
+  
+  
+  vec3 color = vec3(0., random(vec2(0.2, .7)), random(vec2(0.3, .6)));
+  
+  color = mix(color,
+              vec3(sin(u_sound * .6), 0.8 , 0.2),
+              clamp(length(cos(f * u_time)), 0.0, 1.0));
+  
+  color = mix(color,
+              vec3(cos(u_sound * .34), 0.2, 0.6),
+              clamp(length(cos(q * u_sound)), .3, 1));
+  
+  color = mix(color,
+              vec3(1, 0.1, 0.8),
+              clamp(length(cos(s.x * u_sound)), .3, 1));
+  
+  
+  vec3 color2 = vec3(0., random(vec2(0.1, .4)), random(vec2(0, .5)));
+  
+  
+  color2 = mix(color2,
+               vec3(sin(u_time * .2), 0.8, .1),
+               clamp(length(sin(s.y * u_time)), .25 , 1.0));
+  
+  
+  color2 = mix(color2,
+               vec3(0.1,  sin(u_time * .8), .2),
+               clamp(length(sin(z.y *  f * u_time)), .2 , .8));
+  
+  color2 = mix(color2,
+               vec3(0.1, sin(u_time * .3), .2),
+               clamp(length(z.y), .2 , .8));
+  
+  color = mix(color,
+              color2,
+              clamp(length(z.x), 0.0, u_sound * .85));
+  
+  //  outputColor = vec4((f*f+.6*f*f+.5*f)*color,
+  outputColor = vec4((f * f * .3 + f * f * r.x + f * f * f + z.y)*color,1.);
+  //  outputColor = vec4((f * f * .3 + f * f + .3)*color,1.);
 }
 
-vec2 fbm6_2( vec2 p )
-{
-  return vec2(fbm6(p+vec2(16.8)), fbm6(p+vec2(11.5)));
-}
-
-//====================================================================
-
-float func( vec2 q, out vec4 ron )
-{
-  q += 0.03*sin( vec2(0.27,0.23)*u_time + length(q)*vec2(4.1,4.3));
-  
-  vec2 o = fbm4_2( 0.9*q );
-  
-  o += 0.04*sin( vec2(0.12,0.14)*u_time + length(o));
-  
-  vec2 n = fbm6_2( 3.0*o );
-  
-  ron = vec4( o, n );
-  
-  float f = 0.5 + 0.5*fbm4( 1.8*q + 6.0*n );
-  
-  return mix( f, f*f*f*3.5, f*abs(n.x) );
-}
-
-void main()
-{
-  vec2 p = (2.0*u_resolution.xy)/u_resolution.y;
-  float e = 2.0/u_resolution.y;
-  
-  vec4 on = vec4(0.0);
-  float f = func(p, on);
-  
-  vec3 col = vec3(0.0);
-  col = mix( vec3(0.2,0.1,0.4), vec3(0.3,0.05,0.05), f );
-  col = mix( col, vec3(0.9,0.9,0.9), dot(on.zw,on.zw) );
-  col = mix( col, vec3(0.4,0.3,0.3), 0.2 + 0.5*on.y*on.y );
-  col = mix( col, vec3(0.0,0.2,0.4), 0.5*smoothstep(1.2,1.3,abs(on.z)+abs(on.w)) );
-  col = clamp( col*f*2.0, 0.0, 1.0 );
-  
-#if 0
-  // gpu derivatives - bad quality, but fast
-  vec3 nor = normalize( vec3( dFdx(f)*u_resolution.x, 6.0, dFdy(f)*u_resolution.y ) );
-#else
-  // manual derivatives - better quality, but slower
-  vec4 kk;
-  vec3 nor = normalize( vec3( func(p+vec2(e,0.0),kk)-f,
-                             2.0*e,
-                             func(p+vec2(0.0,e),kk)-f ) );
-#endif
-  
-  vec3 lig = normalize( vec3( 0.9, 0.2, -0.4 ) );
-  float dif = clamp( 0.3+0.7*dot( nor, lig ), 0.0, 1.0 );
-  vec3 lin = vec3(0.70,0.90,0.95)*(nor.y*0.5+0.5) + vec3(0.15,0.10,0.05)*dif;
-  col *= 1.2*lin;
-  col = 1.0 - col;
-  col = 1.1*col*col;
-  
-  outputColor = vec4( col, 1.0 );
-}

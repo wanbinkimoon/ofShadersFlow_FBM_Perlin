@@ -8,3 +8,5 @@ install_name_tool -change @executable_path/libfmodex.dylib @executable_path/../F
 
 echo "$GCC_PREPROCESSOR_DEFINITIONS";
 
+rm -R -f "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Resources/data"; mkdir -p "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Resources/"; cp -f -R bin/data "$TARGET_BUILD_DIR/$PRODUCT_NAME.app/Contents/Resources/";
+

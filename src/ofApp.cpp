@@ -2,6 +2,8 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+  ofSetDataPathRoot("../Resources/data/");
+
 //  ofBackground(34, 34, 34);
   ofSetFrameRate(60);
   
@@ -16,13 +18,6 @@ void ofApp::setup(){
   //setup ofxAudioAnalyzer with the SAME PARAMETERS
   audioAnalyzer.setup(sampleRate, bufferSize, inChannels);
   shader.load("shader_2/shader");
-  // loading shader from data folder
-
-//  bar.shader.setUniform4f("color", 200.0, 155.0, 100.0, 255.0);
-//  bar.shader.setUniform2f("center", ofGetWidth() / 2, ofGetHeight() / 2);
-//  bar.shader.setUniform1f("radius", ofGetHeight() / 2);
-//  bar.shader.setUniform1f("expand", 0.25f);
-//  bar.shader.setUniform1f("windowHeight", ofGetHeight());
 }
 
 //--------------------------------------------------------------
@@ -44,14 +39,9 @@ void ofApp::draw(){
   shader.setUniform2f("u_resolution", ofGetWidth(), ofGetHeight());
   shader.setUniform2f("u_resolution", ofGetWidth(), ofGetHeight());
   shader.setUniform1f("u_sound", rms_l);
-  float xpos = ofGetWidth() *.5;
-  float ypos = ofGetHeight() - ofGetHeight() * rms_r;
-  float radius = 5 + 100 * rms_l;
   ofDrawRectangle(0, 0, ofGetWidth(), ofGetHeight());
   shader.end();
 
-  ofSetColor(255);
-//  grid.draw(grid.cell, [&]{bar.draw();}, rms_l);
 }
 //--------------------------------------------------------------
 void ofApp::audioIn(ofSoundBuffer &inBuffer){
